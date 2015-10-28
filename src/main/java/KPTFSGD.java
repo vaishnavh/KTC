@@ -59,19 +59,20 @@ public class KPTFSGD {
             CSRMatrix[] invKernels = new CSRMatrix[N];
             for(int dim=0; dim<N; dim++){
                 final String kernel = args[7+N+dim];
-                if(kernel.startsWith("None")) { //use identity matrix as the inverse of the kernel matrix
-                    invKernels[dim] = Kernel.identity(modeSizes[dim]);
-                } else if(kernel.startsWith("CT")) {
-                    String[] tokens = kernel.split(":");
+                String[] tokens = kernel.split(":");
+                if(tokens[0].startsWith("None")) { //use identity matrix as the inverse of the kernel matrix
+                    double stdev = Double.valueOf(tokens[1]);
+                    invKernels[dim] = Kernel.identity(modeSizes[dim], stdev * stdev);
+                } else if(tokens[0].startsWith("CT")) {
                     String path = tokens[1];
                     invKernels[dim] = Kernel.CTKernel(path, modeSizes[dim]);
-                } else if(kernel.startsWith("RL")) {
-                    String[] tokens = kernel.split(":");
+                } else if(tokens[0].startsWith("RL")) {
                     String path = tokens[1];
-                    Double gamma = Double.valueOf(tokens[2]);
+                    double gamma = Double.valueOf(tokens[2]);
                     invKernels[dim] = Kernel.RLKernel(path, gamma, modeSizes[dim]);
-                } else if(kernel.startsWith("RBF")) {
-                    invKernels[dim] = Kernel.RBFKernel(modeSizes[dim]);
+                } else if(tokens[0].startsWith("RBF")) {
+                    double rbfSigma = Double.valueOf(tokens[1]);
+                    invKernels[dim] = Kernel.RBFKernel(modeSizes[dim], rbfSigma);
                 } else {
                     throw new Exception("Unknown Kernel Function :"+ kernel);
                 }

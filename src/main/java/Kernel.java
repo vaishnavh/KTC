@@ -19,13 +19,14 @@ public class Kernel {
     /**
      * Return identity matrix with given size
      * @param modeLength length of row and column
+     * @param constantFactor constant factor multiplied by the identity matrix
      * @return
      */
-    public static CSRMatrix identity(int modeLength) {
+    public static CSRMatrix identity(int modeLength, double constantFactor) {
 
         DoubleMatrix2D matrix = DoubleFactory2D.sparse.make(modeLength, modeLength);
         for(int i=0; i<modeLength; i++) {
-            matrix.setQuick(i, i, 1);
+            matrix.setQuick(i, i, constantFactor);
         }
         return new CSRMatrix(matrix);
     }
@@ -33,13 +34,15 @@ public class Kernel {
     /**
      * Return the inverse of the RBF kernel with given size
      * @param modeLength length of row and column
+     * @param sigma
      * @return
      */
-    public static CSRMatrix RBFKernel(int modeLength) {
+    public static CSRMatrix RBFKernel(int modeLength, double sigma) {
+        double denominator = sigma * sigma * 2;
         double[][] kernelMatrix = new double[modeLength][modeLength];
         for(int i=0; i<modeLength; i++){
             for(int j=0; j<modeLength; j++) {
-                kernelMatrix[i][j] = Math.exp(-Math.pow(i-j, 2));
+                kernelMatrix[i][j] = Math.exp(-Math.pow(i-j, 2)) / denominator;
             }
         }
         return new CSRMatrix(DenseDoubleAlgebra.DEFAULT.inverse(DoubleFactory2D.dense.make(kernelMatrix)));
@@ -138,7 +141,7 @@ public class Kernel {
         System.out.println(adjacency);
         System.out.println(Laplacian(adjacency));
         System.out.println(regularizedLaplacian(adjacency, 0.5));
-        System.out.println(RBFKernel(4));
+        System.out.println(RBFKernel(4, 1));
     }
 
 }
