@@ -111,7 +111,7 @@ public class KPTFSGD {
                 method.setTest(testTensor);
             }
 
-            result = method.run(trainingTensor, K, T, eta, sigma, invKernels, true);
+            result = method.run(trainingTensor, K, T, eta, sigma, invKernels, modeSizes, true);
 			
 			/*
 			 * write output
@@ -168,15 +168,16 @@ public class KPTFSGD {
      * @param training	training data
      * @param K	rank
      * @param Tout	number of outer iterations
-     * @param eta	learning rate
+     * @param eta0	initial learning rate
      * @param sigma	standard deviation
      * @param invKernels n -> S_{n}, inverted kernel matrix for each mode
+     * @param modeSizes n -> I_{n}, length of each mode
      * @param printLog
      * @return	[(iteration, elapsed time, trainingRMSE, testRMSE), ...]
      */
-    private double[][] run(final Tensor training, final int K, int Tout, float eta, final float sigma, CSRMatrix[] invKernels, boolean printLog){
+    private double[][] run(final Tensor training, final int K, int Tout, float eta0, final float sigma, CSRMatrix[] invKernels, int[] modeSizes, boolean printLog){
 
-        Random random = new Random();
+        Random random = new Random(0);
 
         if(printLog){
             System.out.println("iteration,elapsed_time,training_rmse,test_rmse,learning_rate");
@@ -199,9 +200,11 @@ public class KPTFSGD {
         double[][] result = new double[Tout][4]; //[(iteration, elapsed time, trainingRMSE, testRMSE), ...]
         long start = System.currentTimeMillis();
 
+        float eta = eta0;
+
         for(int outIter=0; outIter<Tout; outIter++){
 
-            update(training, params, K, sigma, eta, nnzFiber, invKernels);
+            update(training, params, K, sigma, eta, nnzFiber, invKernels, modeSizes, random);
 
             //compute RMSE
             double trainingRMSE = Performance.computeRMSE(training, params, N, K);
@@ -225,7 +228,7 @@ public class KPTFSGD {
             result[outIter] = new double[]{(outIter+1), elapsedTime, trainingRMSE, testRMSE};
 
             //adjust learning rate
-            eta = eta / ((outIter+2)*0.5f);
+            eta = eta0 / ((outIter+2)*0.5f);
         }
 
         return result;
@@ -241,19 +244,30 @@ public class KPTFSGD {
      * @param eta	learning rate
      * @param nnzFiber	(n, i_{n}) -> |\Omega^{(n)}_{i_{n}|, number of observable entries in each fiber
      * @param invKernels n -> S_{n}, inverted kernel matrix for each mode
+     * @param modeSizes n -> I_{n}, length of each mode
+     * @param random
      */
-    public void update(Tensor training, float[][][] params, int K, float sigma, float eta, int[][] nnzFiber, CSRMatrix[] invKernels){
+    public void update(Tensor training, float[][][] params, int K, float sigma, float eta, int[][] nnzFiber, CSRMatrix[] invKernels, int[] modeSizes, Random random){
+
+        int[] sequence = ArrayMethods.createSequnce(training.omega);
+        ArrayMethods.shuffle(sequence, random);
 
         int N = params.length;
         float sigmaSquare = sigma * sigma;
+        boolean[][] isUpdated = new boolean[N][];
+        for(int n=0; n<N; n++) {
+            isUpdated[n] = new boolean[modeSizes[n]];
+        }
 
-        for(int idx=0; idx<training.omega; idx++){
+        for(int _idx=0; _idx<training.omega; _idx++){
 
+            int idx = sequence[_idx];
             int[] indices = new int[N];
             float value = training.values[idx];
             float predict = 0;
             for(int n=0; n<N; n++){
                 indices[n] = training.indices[n][idx];
+                isUpdated[n][indices[n]] = true;
             }
 
             float[] products = new float[K];
@@ -300,6 +314,24 @@ public class KPTFSGD {
                         }
                     }
                     params[n][indices[n]][k] = oldValue - eta * ( -2 / sigmaSquare * (value - predict) * productOfRest + kernelTerm / nnzFiber[n][indices[n]]); //update rule
+                }
+            }
+        }
+
+        for(int n=0; n<N; n++) {
+            for(int index = 0; index < modeSizes[n]; index++) {
+                if(!isUpdated[n][index]) {
+                    int[] kernelColumns = invKernels[n].getColumns(index);
+                    float[] kernelValues = invKernels[n].getValues(index);
+                    for(int k=0; k<K; k++) {
+                        float kernelTerm = 0;
+                        for(int j=0; j<kernelColumns.length; j++) {
+                            int col = kernelColumns[j];
+                            float kernelVal = kernelValues[j];
+                            kernelTerm += kernelVal * params[n][col][k];
+                        }
+                        params[n][index][k] = params[n][index][k] - eta * kernelTerm;
+                    }
                 }
             }
         }

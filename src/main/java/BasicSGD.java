@@ -145,14 +145,14 @@ public class BasicSGD {
 	 * @param training	training data
 	 * @param K	rank
 	 * @param Tout	number of outer iterations
-	 * @param eta	learning rate
+	 * @param eta0	initial learning rate
 	 * @param lambda	regularization parameter
 	 * @param printLog
 	 * @return	[(iteration, elapsed time, trainingRMSE, testRMSE), ...]
 	 */
-	private double[][] run(final Tensor training, final int K, int Tout, float eta, final float lambda, boolean printLog){
+	private double[][] run(final Tensor training, final int K, int Tout, float eta0, final float lambda, boolean printLog){
 
-		Random random = new Random();
+		Random random = new Random(0);
 		
 		if(printLog){
 			System.out.println("iteration,elapsed_time,training_rmse,test_rmse,learning_rate");
@@ -174,10 +174,12 @@ public class BasicSGD {
 		
 		double[][] result = new double[Tout][4]; //[(iteration, elapsed time, trainingRMSE, testRMSE), ...]
 		long start = System.currentTimeMillis();
-		
+
+		float eta = eta0;
+
 		for(int outIter=0; outIter<Tout; outIter++){
 
-            update(training, params, K, lambda, eta, nnzFiber);
+            update(training, params, K, lambda, eta, nnzFiber, random);
 			
 			//compute RMSE
 			double trainingRMSE = Performance.computeRMSE(training, params, N, K);
@@ -201,7 +203,7 @@ public class BasicSGD {
 			result[outIter] = new double[]{(outIter+1), elapsedTime, trainingRMSE, testRMSE}; 
 			
 			//adjust learning rate
-            eta = eta / ((outIter+2)*0.5f);
+            eta = eta0 / ((outIter+2)*0.5f);
 		}
 		
 		return result;
@@ -217,12 +219,16 @@ public class BasicSGD {
 	 * @param eta	learning rate
 	 * @param nnzFiber	(n, i_{n}) -> |\Omega^{(n)}_{i_{n}|, number of observable entries in each fiber
 	 */
-	public void update(Tensor training, float[][][] params, int K, float lambda, float eta, int[][] nnzFiber){
+	public void update(Tensor training, float[][][] params, int K, float lambda, float eta, int[][] nnzFiber, Random random){
+
+		int[] sequence = ArrayMethods.createSequnce(training.omega);
+		ArrayMethods.shuffle(sequence, random);
 
 		int N = params.length;
 		
-		for(int idx=0; idx<training.omega; idx++){
+		for(int _idx=0; _idx<training.omega; _idx++){
 
+			int idx = sequence[_idx];
 			int[] indices = new int[N];
 			float value = training.values[idx];
 			float predict = 0;
