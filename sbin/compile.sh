@@ -1,11 +1,11 @@
-cd $(dirname $(readlink -f $0))
+#cd $(dirname $(readlink -f $0))
 cd ..
 
 echo compiling java sources...
 rm -rf class
 mkdir class
 
-javac -d class $(find ./src -name *.java)
+javac -cp ./library/parallelcolt-0.10.0.jar -d class $(find ./src -name *.java)
 
 echo make jar archive...
 cd class
