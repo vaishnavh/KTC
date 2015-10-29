@@ -94,6 +94,7 @@ public class TensorMethods {
 		int dimension = tensor.N;
 		int[] modeSizes = tensor.modeLengths;
 		int[][] cardinality = new int[dimension][];
+		
 		for(int dim=0; dim<dimension; dim++){
 			cardinality[dim] = new int[modeSizes[dim]];
 		}

@@ -84,6 +84,23 @@ public class Kernel {
     }
 
     /**
+	 * Compute the Laplacian matrix of the given adjacency matrix
+	 * @param adjacency
+	 * @return
+	 */
+	private static CSRMatrix Laplacian(DoubleMatrix2D adjacency) {
+	    final DoubleMatrix2D laplacian = adjacency.copy();
+	    adjacency.forEachNonZero(new IntIntDoubleFunction() {
+	        public double apply(int src, int trg, double value) {
+	            laplacian.setQuick(src, trg, -1);
+	            laplacian.setQuick(src, src, laplacian.get(src, src) + 1);
+	            return value;
+	        }
+	    });
+	    return new CSRMatrix(laplacian);
+	}
+
+	/**
      * Compute the regularized Laplacian matrix of the given adjacency matrix
      * @param adjacency
      * @return
