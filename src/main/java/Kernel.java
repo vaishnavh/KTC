@@ -8,6 +8,14 @@ import cern.colt.matrix.tdouble.algo.SparseDoubleAlgebra;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Set;
+
+import text_utils.Kernel_Computer;
+import edu.stanford.nlp.stats.*;
+import edu.stanford.nlp.util.Generics;
+
+
 
 /**
  * Kernels
@@ -47,7 +55,17 @@ public class Kernel {
         }
         return new CSRMatrix(DenseDoubleAlgebra.DEFAULT.inverse(DoubleFactory2D.dense.make(kernelMatrix)));
     }
-
+    
+    /**
+     * Return the Symmetric Kullback-Leibler Divergence for user similarity.
+     * @param File containing user_id and text of the tweet
+     * @return CSRMatrix
+     */
+    
+    public static CSRMatrix SymmetricKLD(String filePath, int modeLength) throws Exception{
+    	return SymmetricKLD_Matrix(filePath,modeLength);
+    }
+    
     /**
      * Return the inverse of the commute time kernel with given size
      * @param modeLength length of row and column
@@ -67,27 +85,20 @@ public class Kernel {
     }
 
     /**
+     * Computes the symmetric KLD for the given text file. 
+     */
+    
+    private static CSRMatrix SymmetricKLD_Matrix(String filePath,int modeLength) throws Exception{
+    	DoubleMatrix2D symm_kld = DoubleFactory2D.sparse.make(modeLength, modeLength);
+    	symm_kld = importKernelFromFile(filePath,",",modeLength);
+    	return new CSRMatrix(symm_kld);
+    }
+    
+    /**
      * Compute the Laplacian matrix of the given adjacency matrix
      * @param adjacency
      * @return
      */
-    private static CSRMatrix Laplacian(DoubleMatrix2D adjacency) {
-        final DoubleMatrix2D laplacian = adjacency.copy();
-        adjacency.forEachNonZero(new IntIntDoubleFunction() {
-            public double apply(int src, int trg, double value) {
-                laplacian.setQuick(src, trg, -1);
-                laplacian.setQuick(src, src, laplacian.get(src, src) + 1);
-                return value;
-            }
-        });
-        return new CSRMatrix(laplacian);
-    }
-
-    /**
-	 * Compute the Laplacian matrix of the given adjacency matrix
-	 * @param adjacency
-	 * @return
-	 */
 	private static CSRMatrix Laplacian(DoubleMatrix2D adjacency) {
 	    final DoubleMatrix2D laplacian = adjacency.copy();
 	    adjacency.forEachNonZero(new IntIntDoubleFunction() {
@@ -153,12 +164,47 @@ public class Kernel {
     }
 
 
-    public static void main(String[] ar) throws IOException {
-        DoubleMatrix2D adjacency = importNetworkFromFile("data/kernel.test", ",", 4);
+    /**
+     * import network from given path
+     * @param filePath path of the network file
+     * @param delim delimiter
+     * @param modeLength number of nodes in a graph
+     * @return similarity matrix
+     * @throws IOException
+     */
+    private static DoubleMatrix2D importKernelFromFile(String filePath,  String delim, int modeLength) throws IOException {
+        DoubleMatrix2D kernel = DoubleFactory2D.sparse.make(modeLength, modeLength);
+        BufferedReader br = new BufferedReader(new FileReader(filePath));
+        while(true) {
+            String line = br.readLine();
+            if (line == null)
+                break;
+            String[] tokens = line.split(delim);
+            int src = Integer.valueOf(tokens[0]);
+            int trg = Integer.valueOf(tokens[1]);
+            double value=Double.valueOf(tokens[2]);
+            if(src!=trg) {
+                kernel.setQuick(src, trg, value);
+                kernel.setQuick(trg, src, value);
+            }
+        }
+        return kernel;
+    }
+
+    
+    public static void main(String[] ar) throws Exception {
+    	/*
+    	DoubleMatrix2D adjacency = importNetworkFromFile("data/kernel.test", ",", 4);
         System.out.println(adjacency);
         System.out.println(Laplacian(adjacency));
         System.out.println(regularizedLaplacian(adjacency, 0.5));
         System.out.println(RBFKernel(4, 1));
+        */
+    	
+    	String filePath="./data/beer_advocate/Beeradvocate_UserDetails.txt";
+    	int modeLength=3553;
+    	CSRMatrix symm_kld=SymmetricKLD_Matrix(filePath,modeLength);
+    	System.out.println(symm_kld);
     }
 
 }

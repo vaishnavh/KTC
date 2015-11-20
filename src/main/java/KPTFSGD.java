@@ -73,7 +73,11 @@ public class KPTFSGD {
                 } else if(tokens[0].startsWith("RBF")) {
                     double rbfSigma = Double.valueOf(tokens[1]);
                     invKernels[dim] = Kernel.RBFKernel(modeSizes[dim], rbfSigma);
-                } else {
+                } else if(tokens[0].startsWith("SKLD")){
+                	String path=tokens[1];
+                	invKernels[dim] = Kernel.SymmetricKLD(path, modeSizes[dim]);
+                }
+                else {
                     throw new Exception("Unknown Kernel Function :"+ kernel);
                 }
                 System.out.println("-Kernel"+(dim+1)+": "+kernel);

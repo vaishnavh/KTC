@@ -120,6 +120,7 @@ public class Preprocess_Epinions {
 		BufferedReader brd=new BufferedReader(new FileReader(in_path));
 		String strLine="";
 		
+		
 		while((strLine=brd.readLine())!=null){
 			String[] split=strLine.split(",");
 			int user_id=Integer.parseInt(split[0]);
@@ -130,6 +131,8 @@ public class Preprocess_Epinions {
 			users.add(user_id);
 			movies.add(movie_id);
 			ts.add(timestamp);
+			
+			
 		}
 		
 		System.out.println("#Distinct Users="+users.size());
