@@ -168,17 +168,51 @@ public class Kernel_Computer {
 				
 				score=(kl_u_v+kl_v_u)/2;
 				
+				score=1/score;
+				
 				fwd.write(i+","+j+","+score+"\n");
 			}
 		}
 		fwd.close();
 	}
+
+	public static void inverse_and_write(String in_path, String out_path,int modeLength) throws Exception{
+		DoubleMatrix2D kernel = DoubleFactory2D.sparse.make(modeLength, modeLength);
+        BufferedReader br = new BufferedReader(new FileReader(in_path));
+        while(true) {
+            String line = br.readLine();
+            if (line == null)
+                break;
+            String[] tokens = line.split(",");
+            int src = Integer.valueOf(tokens[0]);
+            int trg = Integer.valueOf(tokens[1]);
+            double value=Double.valueOf(tokens[2]);
+            if(src!=trg) {
+                kernel.setQuick(src, trg, value);
+                kernel.setQuick(trg, src, value);
+            }
+        }
+        br.close();
+        
+        System.out.println("Now Inversing");
+        
+        DoubleMatrix2D inv_kernel = cern.colt.matrix.tdouble.algo.DenseDoubleAlgebra.class.newInstance().inverse(kernel);
+        FileWriter fwd = new FileWriter(out_path);
+        for(int i=0;i<modeLength;i++){
+        	for(int j=i;j<modeLength;j++){
+        		fwd.write(i+","+j+","+inv_kernel.get(i, j)+"\n");
+        	}
+        }
+        fwd.close();
+	}
+	
 	
 	public static void main(String[] args) throws Exception{
 		String in_file="./data/beer_advocate/Beeradvocate_UserDetails.txt";
 		String out_file="./data/beer_advocate/UserTextKernel.kernel";
 		HashMap<Integer,Distribution<String>> user_distributions=Load_User_Texts(in_file);
 		compute_KLD(user_distributions,3553,out_file);
+		String out_file2="./data/beer_advocate/UserInvTextKernel.kernel";
+		inverse_and_write(out_file, out_file2,3553);
 	}
 }
-
