@@ -106,4 +106,19 @@ public class ArrayMethods {
 		}
 	}
 
+	/**
+	 * shuffle given array
+	 * @param array
+	 * @param random
+	 */
+	public static void shuffle(float[] array, Random random){
+		int n = array.length;
+		for(int i = n; i>=1; i--) {
+			int index = random.nextInt(i);
+			float temp = array[i-1];
+			array[i-1] = array[index];
+			array[index] = temp;
+		}
+	}
+
 }

@@ -62,7 +62,8 @@ public class KPTFSGD {
                     invKernels[dim] = Kernel.identity(modeSizes[dim], stdev * stdev);
                 } else if(tokens[0].startsWith("CT")) {
                     String path = tokens[1];
-                    invKernels[dim] = Kernel.CTKernel(path, modeSizes[dim]);
+                    double gamma = Double.valueOf(tokens[2]);
+                    invKernels[dim] = Kernel.CTKernel(path, gamma, modeSizes[dim]);
                 } else if(tokens[0].startsWith("RL")) {
                     String path = tokens[1];
                     double gamma = Double.valueOf(tokens[2]);
