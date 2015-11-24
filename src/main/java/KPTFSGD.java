@@ -1,6 +1,3 @@
-import cern.colt.matrix.tdouble.DoubleMatrix2D;
-import cern.colt.matrix.tdouble.impl.SparseDoubleMatrix2D;
-
 import java.util.Random;
 
 /**

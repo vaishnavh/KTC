@@ -3,17 +3,10 @@ import cern.colt.function.tdouble.IntIntDoubleFunction;
 import cern.colt.matrix.tdouble.DoubleFactory2D;
 import cern.colt.matrix.tdouble.DoubleMatrix2D;
 import cern.colt.matrix.tdouble.algo.DenseDoubleAlgebra;
-import cern.colt.matrix.tdouble.algo.SparseDoubleAlgebra;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Set;
-
-import text_utils.Kernel_Computer;
-import edu.stanford.nlp.stats.*;
-import edu.stanford.nlp.util.Generics;
 
 
 
@@ -58,7 +51,7 @@ public class Kernel {
     
     /**
      * Return the Symmetric Kullback-Leibler Divergence for user similarity.
-     * @param File containing user_id and text of the tweet
+     * @param filePath containing user_id and text of the tweet
      * @return CSRMatrix
      */
     
