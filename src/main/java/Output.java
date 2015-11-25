@@ -78,6 +78,25 @@ public class Output {
 		}
 		bw.close();
 	}
+
+	/**
+	 * write estimated values to a given output directory
+	 * @param outputDir	directory to write output files
+	 * @param query	query data
+	 * @param numOfRows number of rows
+	 * @throws IOException
+	 */
+	public static void writeEstimate(String outputDir, CSRMatrix query, int numOfRows) throws IOException{
+		BufferedWriter bw = new BufferedWriter(new FileWriter(outputDir+File.separator+"estimate.out"));
+		for(int item=0; item<numOfRows; item++) {
+			int[] users = query.getColumns(item);
+			int[] values = query.getColumns(item);
+			for(int i=0; i<users.length; i++) {
+				bw.write(users[i]+","+item+","+values[i]);
+				bw.newLine();
+			}
+		}
+	}
 	
 	/**
 	 * write estimated values to a given output directory

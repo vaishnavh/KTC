@@ -62,7 +62,8 @@ public class KPTFSGD {
                     invKernels[dim] = Kernel.identity(modeSizes[dim], stdev * stdev);
                 } else if(tokens[0].startsWith("CT")) {
                     String path = tokens[1];
-                    invKernels[dim] = Kernel.CTKernel(path, modeSizes[dim]);
+                    double gamma = Double.valueOf(tokens[2]);
+                    invKernels[dim] = Kernel.CTKernel(path, gamma, modeSizes[dim]);
                 } else if(tokens[0].startsWith("RL")) {
                     String path = tokens[1];
                     double gamma = Double.valueOf(tokens[2]);
@@ -95,7 +96,7 @@ public class KPTFSGD {
             double[][] result = null;
 			
 			/*
-			 * run BasicSGD
+			 * run KPTF SGD
 			 */
             String name = "KPTF SGD";
 
@@ -182,7 +183,7 @@ public class KPTFSGD {
         Random random = new Random(0);
 
         if(printLog){
-            System.out.println("iteration,elapsed_time,training_rmse,test_rmse,learning_rate");
+            System.out.println("iteration,elapsed_time,training_rmse,test_rmse,test_rmse(cold start),learning_rate");
         }
 
         final int N = training.N;  // dimension
@@ -191,13 +192,23 @@ public class KPTFSGD {
         final int[] modeLengths = training.modeLengths; // n -> I_{n}
         params = new float[N][][]; //factor matrices (n, i_{n}, k) -> a^{(n)}_{i_{n}k}
         for(int dim=0; dim<N; dim++){
-            params[dim] = ArrayMethods.createUniformRandomMatrix(modeLengths[dim], K, 1, random);
+            params[dim] = ArrayMethods.createUniformRandomMatrix(modeLengths[dim], K, 1.0f/K, random);
         }
 
         /**
          * number of observable entries in each fiber (n, i_{n}) -> |\Omega^{(n)}_{i_{n}|
          */
         final int[][] nnzFiber = TensorMethods.cardinality(training);
+
+        for(int n=0; n<N; n++) {
+            for(int index = 0; index < modeSizes[n]; index++) {
+                if(nnzFiber[n][index]==0) {
+                    for(int k=0; k<K; k++) {
+                        params[n][index][k] = 0;
+                    }
+                }
+            }
+        }
 
         double[][] result = new double[Tout][4]; //[(iteration, elapsed time, trainingRMSE, testRMSE), ...]
         long start = System.currentTimeMillis();
@@ -211,8 +222,10 @@ public class KPTFSGD {
             //compute RMSE
             double trainingRMSE = Performance.computeRMSE(training, params, N, K);
             double testRMSE = 0;
+            double testRMSEColdStart = 0;
             if(useTest){
                 testRMSE = Performance.computeRMSE(test, params, N, K);
+                testRMSEColdStart = Performance.computeRMSEColdStart(test, params, N, K, nnzFiber);
             }
 
             // check overflow
@@ -224,13 +237,13 @@ public class KPTFSGD {
             long elapsedTime = System.currentTimeMillis()-start;
 
             if(printLog){
-                System.out.printf("%d,%d,%f,%f,%f\n",outIter, elapsedTime, trainingRMSE, testRMSE, eta);
+                System.out.printf("%d,%d,%f,%f,%f,%f\n",outIter, elapsedTime, trainingRMSE, testRMSE, testRMSEColdStart, eta);
             }
 
             result[outIter] = new double[]{(outIter+1), elapsedTime, trainingRMSE, testRMSE};
 
             //adjust learning rate
-            eta = eta0 / ((outIter+2)*0.5f);
+            //eta = eta0 / ((outIter+2)*0.5f);
         }
 
         return result;
@@ -323,6 +336,7 @@ public class KPTFSGD {
         for(int n=0; n<N; n++) {
             for(int index = 0; index < modeSizes[n]; index++) {
                 if(!isUpdated[n][index]) {
+                    //System.out.println(n+","+index);
                     int[] kernelColumns = invKernels[n].getColumns(index);
                     float[] kernelValues = invKernels[n].getValues(index);
                     for(int k=0; k<K; k++) {

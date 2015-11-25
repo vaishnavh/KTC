@@ -56,16 +56,20 @@ public class Kernel {
      */
     
     public static CSRMatrix SymmetricKLD(String filePath, int modeLength) throws Exception{
-    	return SymmetricKLD_Matrix(filePath,modeLength);
+    	return SymmetricKLD_Matrix(filePath, modeLength);
     }
-    
+
+    /**
+     *
+     */
+
     /**
      * Return the inverse of the commute time kernel with given size
      * @param modeLength length of row and column
      * @return
      */
-    public static CSRMatrix CTKernel(String filePath, int modeLength) throws IOException {
-        return Laplacian(importNetworkFromFile(filePath, ",", modeLength));
+    public static CSRMatrix CTKernel(String filePath, double gamma, int modeLength) throws IOException {
+        return Laplacian(importNetworkFromFile(filePath, ",", modeLength), gamma);
     }
 
     /**
@@ -83,21 +87,22 @@ public class Kernel {
     
     private static CSRMatrix SymmetricKLD_Matrix(String filePath,int modeLength) throws Exception{
     	DoubleMatrix2D symm_kld = DoubleFactory2D.sparse.make(modeLength, modeLength);
-    	symm_kld = importKernelFromFile(filePath,",",modeLength);
+    	symm_kld = importKernelFromFile(filePath, ",", modeLength);
     	return new CSRMatrix(symm_kld);
     }
     
     /**
      * Compute the Laplacian matrix of the given adjacency matrix
      * @param adjacency
+     * @param gamma
      * @return
      */
-	private static CSRMatrix Laplacian(DoubleMatrix2D adjacency) {
-	    final DoubleMatrix2D laplacian = adjacency.copy();
+	private static CSRMatrix Laplacian(DoubleMatrix2D adjacency, final double gamma) {
+        final DoubleMatrix2D laplacian = adjacency.copy();
 	    adjacency.forEachNonZero(new IntIntDoubleFunction() {
 	        public double apply(int src, int trg, double value) {
-	            laplacian.setQuick(src, trg, -1);
-	            laplacian.setQuick(src, src, laplacian.get(src, src) + 1);
+	            laplacian.setQuick(src, trg, -1 * gamma);
+	            laplacian.setQuick(src, src, laplacian.get(src, src) + gamma);
 	            return value;
 	        }
 	    });
@@ -107,6 +112,7 @@ public class Kernel {
 	/**
      * Compute the regularized Laplacian matrix of the given adjacency matrix
      * @param adjacency
+     * @param gamma
      * @return
      */
     private static CSRMatrix regularizedLaplacian(DoubleMatrix2D adjacency, final double gamma) {
@@ -138,7 +144,7 @@ public class Kernel {
      * @return adjacency matrix
      * @throws IOException
      */
-    private static DoubleMatrix2D importNetworkFromFile(String filePath,  String delim, int modeLength) throws IOException {
+    public static DoubleMatrix2D importNetworkFromFile(String filePath, String delim, int modeLength) throws IOException {
         DoubleMatrix2D adjacency = DoubleFactory2D.sparse.make(modeLength, modeLength);
         BufferedReader br = new BufferedReader(new FileReader(filePath));
         while(true) {
@@ -156,6 +162,35 @@ public class Kernel {
         return adjacency;
     }
 
+    /**
+     * import network from given path
+     * @param filePath path of the network file
+     * @param delim delimeter
+     * @param srcIdx column index of source index
+     * @param trgIdx column index of target index
+     * @param valueIdx column index of value
+     * @param srcModeLength number of source nodes
+     * @param trgModeLength number of target nodes
+     * @return adjacency matrix
+     * @throws IOException
+     */
+    public static DoubleMatrix2D importBipartiteFromFile(String filePath, String delim, int srcIdx, int trgIdx, int valueIdx, int srcModeLength, int trgModeLength) throws IOException {
+        DoubleMatrix2D adjacency = DoubleFactory2D.sparse.make(srcModeLength, trgModeLength);
+        BufferedReader br = new BufferedReader(new FileReader(filePath));
+        while(true) {
+            String line = br.readLine();
+            if (line == null)
+                break;
+            String[] tokens = line.split(delim);
+            int src = Integer.valueOf(tokens[srcIdx]);
+            int trg = Integer.valueOf(tokens[trgIdx]);
+            if(src!=trg) {
+                adjacency.setQuick(src, trg, Double.valueOf(tokens[valueIdx]));
+            }
+        }
+        return adjacency;
+    }
+
 
     /**
      * import network from given path
@@ -165,7 +200,7 @@ public class Kernel {
      * @return similarity matrix
      * @throws IOException
      */
-    private static DoubleMatrix2D importKernelFromFile(String filePath,  String delim, int modeLength) throws IOException {
+    public static DoubleMatrix2D importKernelFromFile(String filePath,  String delim, int modeLength) throws IOException {
         DoubleMatrix2D kernel = DoubleFactory2D.sparse.make(modeLength, modeLength);
         BufferedReader br = new BufferedReader(new FileReader(filePath));
         while(true) {

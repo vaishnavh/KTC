@@ -71,7 +71,7 @@ public class ArrayMethods {
 		for(int i=0; i<m; i++){
 			for(int j=0; j<n; j++){
 				while(matrix[i][j]==0) {
-					matrix[i][j] = (random.nextFloat()) * scalarFactor;
+					matrix[i][j] = ((random.nextFloat()) - 0.5f) * scalarFactor;
 				}
 			}
 		}
@@ -101,6 +101,21 @@ public class ArrayMethods {
 		for(int i = n; i>=1; i--) {
 			int index = random.nextInt(i);
 			int temp = array[i-1];
+			array[i-1] = array[index];
+			array[index] = temp;
+		}
+	}
+
+	/**
+	 * shuffle given array
+	 * @param array
+	 * @param random
+	 */
+	public static void shuffle(float[] array, Random random){
+		int n = array.length;
+		for(int i = n; i>=1; i--) {
+			int index = random.nextInt(i);
+			float temp = array[i-1];
 			array[i-1] = array[index];
 			array[index] = temp;
 		}

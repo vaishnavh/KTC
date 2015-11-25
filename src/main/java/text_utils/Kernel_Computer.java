@@ -41,7 +41,7 @@ public class Kernel_Computer {
 		String[] split;
 		
 		int prev_user_id=0;
-	    ClassicCounter<String> c = new ClassicCounter<>();
+	    ClassicCounter<String> c = new ClassicCounter();
 	    Distribution<String> user_distribution;
  	    
 		while((strLine=brd.readLine())!=null){
@@ -61,7 +61,7 @@ public class Kernel_Computer {
 				user_distribution=Distribution.goodTuringSmoothedCounter(c,vocab.size());
 				user_distributions.put(prev_user_id, user_distribution);
 				//ReInitialize ClassicCounter
-				c = new ClassicCounter<>();
+				c = new ClassicCounter();
 				//Fill Up counter with this line's text.
 				for(int i=1;i<split.length;i++){
 					String[] split2=split[i].split(" ");
