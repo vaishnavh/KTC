@@ -71,7 +71,7 @@ public class ArrayMethods {
 		for(int i=0; i<m; i++){
 			for(int j=0; j<n; j++){
 				while(matrix[i][j]==0) {
-					matrix[i][j] = (random.nextFloat()) * scalarFactor;
+					matrix[i][j] = ((random.nextFloat()) - 0.5f) * scalarFactor;
 				}
 			}
 		}

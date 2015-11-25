@@ -192,7 +192,7 @@ public class KPTFSGD {
         final int[] modeLengths = training.modeLengths; // n -> I_{n}
         params = new float[N][][]; //factor matrices (n, i_{n}, k) -> a^{(n)}_{i_{n}k}
         for(int dim=0; dim<N; dim++){
-            params[dim] = ArrayMethods.createUniformRandomMatrix(modeLengths[dim], K, 1, random);
+            params[dim] = ArrayMethods.createUniformRandomMatrix(modeLengths[dim], K, 1.0f/K, random);
         }
 
         /**
@@ -243,7 +243,7 @@ public class KPTFSGD {
             result[outIter] = new double[]{(outIter+1), elapsedTime, trainingRMSE, testRMSE};
 
             //adjust learning rate
-            eta = eta0 / ((outIter+2)*0.5f);
+            //eta = eta0 / ((outIter+2)*0.5f);
         }
 
         return result;
@@ -336,6 +336,7 @@ public class KPTFSGD {
         for(int n=0; n<N; n++) {
             for(int index = 0; index < modeSizes[n]; index++) {
                 if(!isUpdated[n][index]) {
+                    //System.out.println(n+","+index);
                     int[] kernelColumns = invKernels[n].getColumns(index);
                     float[] kernelValues = invKernels[n].getValues(index);
                     for(int k=0; k<K; k++) {
