@@ -96,7 +96,7 @@ public class KPTFSGD {
             double[][] result = null;
 			
 			/*
-			 * run BasicSGD
+			 * run KPTF SGD
 			 */
             String name = "KPTF SGD";
 
@@ -183,7 +183,7 @@ public class KPTFSGD {
         Random random = new Random(0);
 
         if(printLog){
-            System.out.println("iteration,elapsed_time,training_rmse,test_rmse,learning_rate");
+            System.out.println("iteration,elapsed_time,training_rmse,test_rmse,test_rmse(cold start),learning_rate");
         }
 
         final int N = training.N;  // dimension
@@ -200,6 +200,16 @@ public class KPTFSGD {
          */
         final int[][] nnzFiber = TensorMethods.cardinality(training);
 
+        for(int n=0; n<N; n++) {
+            for(int index = 0; index < modeSizes[n]; index++) {
+                if(nnzFiber[n][index]==0) {
+                    for(int k=0; k<K; k++) {
+                        params[n][index][k] = 0;
+                    }
+                }
+            }
+        }
+
         double[][] result = new double[Tout][4]; //[(iteration, elapsed time, trainingRMSE, testRMSE), ...]
         long start = System.currentTimeMillis();
 
@@ -212,8 +222,10 @@ public class KPTFSGD {
             //compute RMSE
             double trainingRMSE = Performance.computeRMSE(training, params, N, K);
             double testRMSE = 0;
+            double testRMSEColdStart = 0;
             if(useTest){
                 testRMSE = Performance.computeRMSE(test, params, N, K);
+                testRMSEColdStart = Performance.computeRMSEColdStart(test, params, N, K, nnzFiber);
             }
 
             // check overflow
@@ -225,7 +237,7 @@ public class KPTFSGD {
             long elapsedTime = System.currentTimeMillis()-start;
 
             if(printLog){
-                System.out.printf("%d,%d,%f,%f,%f\n",outIter, elapsedTime, trainingRMSE, testRMSE, eta);
+                System.out.printf("%d,%d,%f,%f,%f,%f\n",outIter, elapsedTime, trainingRMSE, testRMSE, testRMSEColdStart, eta);
             }
 
             result[outIter] = new double[]{(outIter+1), elapsedTime, trainingRMSE, testRMSE};
