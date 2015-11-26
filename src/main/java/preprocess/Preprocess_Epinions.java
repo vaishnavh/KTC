@@ -7,22 +7,65 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class Preprocess_Epinions {
 
-	public static void preprocess_ratings_file(String in_path,String map_users_file,String out_path) throws IOException{
+	public static int[] Get_MinMax(String in_path) throws Exception{
+		int[] arr=new int[2];
+		int min_ts=Integer.MAX_VALUE;
+		int max_ts=Integer.MIN_VALUE;
+		
+		BufferedReader brd=new BufferedReader(new FileReader(in_path));
+		String strLine="";
+		
+		while((strLine=brd.readLine())!=null){
+			strLine=strLine.trim();
+			strLine=strLine.replace("  "," ");
+			String[] split=strLine.split(" ");
+			
+			int user_id=Double.valueOf(split[0]).intValue();
+			int prod_id=Double.valueOf(split[1]).intValue();
+			double rating=Double.valueOf(split[3]);
+			long timestamp=Double.valueOf(split[5]).longValue();
+			Date date=new Date(timestamp*1000);
+			int monthyear = (date.getYear()-70)*12+date.getMonth();
+			
+			if (monthyear<min_ts)
+				min_ts=monthyear;
+			if(monthyear>max_ts)
+				max_ts=monthyear;
+				
+		}
+		
+		arr[0]=min_ts;
+		arr[1]=max_ts;
+		
+		return arr;
+	}
+	
+	public static void preprocess_ratings_file(String in_path,String map_users_file,String out_path) throws Exception{
 		Hashtable<Integer,Integer> map_users= new Hashtable<Integer,Integer>();
 		int ctr_users=0;
+		
 		Hashtable<Integer,Integer> map_movies = new Hashtable<Integer,Integer>();
 		int ctr_movie=0;
-		Hashtable<Integer,Integer> map_ts=new Hashtable<Integer,Integer>();
-		int ctr_ts=0;
+		
+		int[] arr=Get_MinMax(in_path);
+		int min_ts=arr[0];
+		int max_ts=arr[1];
+		System.out.println("Min Ts="+min_ts);
+		System.out.println("Max Ts="+max_ts);
+		System.out.println("Diff="+(max_ts-min_ts));
 		
 		FileWriter fwd_map=new FileWriter(map_users_file);
 		BufferedReader brd=new BufferedReader(new FileReader(in_path));
 		FileWriter fwd=new FileWriter(out_path);
 		
 		String strLine="";
+		
 		while((strLine=brd.readLine())!=null){
 			strLine=strLine.trim();
 			strLine=strLine.replace("  "," ");
@@ -58,14 +101,8 @@ public class Preprocess_Epinions {
 				ctr_movie+=1;
 			}
 			
-			if(map_ts.containsKey(monthyear)){
-				mod_ts=map_ts.get(monthyear);
-			}
-			else{
-				mod_ts=ctr_ts;
-				map_ts.put(monthyear,ctr_ts);
-				ctr_ts+=1;
-			}
+			mod_ts=monthyear-min_ts;
+			
 			fwd.write(mod_user_id+","+mod_prod_id+","+mod_ts+","+rating+"\n");
 		}
 		fwd_map.close();
@@ -157,20 +194,21 @@ public class Preprocess_Epinions {
 		fwd_test.close();
 	}
 	
-	public static void main(String[] args) throws IOException{
+	public static void main(String[] args) throws Exception{
 		
-		//System.out.println(System.getProperty("user.dir"));
-		//preprocess_ratings_file("./data/epinions/ratings.txt","./data/epinions/map_users.txt","./data/epinions/preprocessed_ratings.txt");
+		System.out.println(System.getProperty("user.dir"));
+		preprocess_ratings_file("./data/epinions/ratings.txt","./data/epinions/map_users.txt","./data/epinions/preprocessed_ratings.txt");
+		preprocess_network_file("./data/epinions/network.txt","./data/epinions/map_users.txt","./data/epinions/preprocessed_network.txt");
 		
 		Count_Data("./data/epinions/preprocessed_ratings.txt");
 		//Count_Data("./data/flixster/flixster/rating.train");
 		String in_file="./data/epinions/preprocessed_ratings.txt";
 		String train_file="./data/epinions/ratings.train";
 		String test_file="./data/epinions/ratings.test";
-		//Split_Train_Test(in_file, train_file, test_file);
+		Split_Train_Test(in_file, train_file, test_file);
 		
 		//Count_Data(train_file);
 		//Count_Data(test_file);
-		preprocess_network_file("./data/epinions/network.txt","./data/epinions/map_users.txt","./data/epinions/preprocessed_network.txt");
+		
 	}
 }

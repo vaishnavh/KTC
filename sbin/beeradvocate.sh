@@ -18,6 +18,6 @@ echo "[DEMO] Outputs are saved in a local directory named \"output_ptf_sgd\""
 echo "[DEMO] Start KPTF SGD..."
 rm -rf output_kptf_sgd
 mkdir output_kptf_sgd
-./run_kptf_sgd.sh ../data/beer_advocate/ratings.train output_kptf_sgd 10 3 10 0.02 1 3553 36805 186 SKLD:../data/beer_advocate/UserTextKernel.kernel None:1 RBF:1 ../data/beer_advocate/ratings.test
+./run_kptf_sgd.sh ../data/beer_advocate/ratings.train output_kptf_sgd 10 3 10 0.01 1 3553 36805 186 SKLD:../data/beer_advocate/UserInvTextKernel.kernel None:1 RBF:1 ../data/beer_advocate/ratings.test
 echo "[DEMO] Finish PTF SGD..."
 echo "[DEMO] Outputs are saved in a local directory named \"output_kptf_sgd\""

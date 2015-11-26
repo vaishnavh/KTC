@@ -1,0 +1,1 @@
+java -Xmx4G -cp ../library/parallelcolt-0.10.0.jar:../kptf.jar GridSearch $@

@@ -21,10 +21,10 @@ public class KPTFSGD {
      * @param args	[training] [output] [T] [N] [K] [eta] [sigma] [I1] [I2] ... [IN] [Kernel1] [Kernel2] ... [KernelN] [test] [query]
      * @throws Exception
      */
-    public static void run(String[] args) throws Exception{
-
+    public static double[][] run(String[] args) throws Exception{
         boolean inputError = true;
-
+        double[][] result = null;
+        
         try {
 		
 			/*
@@ -93,7 +93,7 @@ public class KPTFSGD {
 
             inputError = false;
 
-            double[][] result = null;
+            result = null;
 			
 			/*
 			 * run KPTF SGD
@@ -136,6 +136,7 @@ public class KPTFSGD {
             System.out.println("Complete!!!");
             System.out.println("===========");
 
+            
         } catch(Exception e){
             if(inputError){
                 String fileName = "run_kptf_sgd.sh";
@@ -146,6 +147,7 @@ public class KPTFSGD {
                 throw e;
             }
         }
+        return result;
     }
 
     /**
