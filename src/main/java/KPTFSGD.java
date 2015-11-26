@@ -237,7 +237,7 @@ public class KPTFSGD {
             long elapsedTime = System.currentTimeMillis()-start;
 
             if(printLog){
-                System.out.printf("%d,%d,%f,%f,%f,%f\n",outIter, elapsedTime, trainingRMSE, testRMSE, testRMSEColdStart, eta);
+                System.out.printf("%d,%d,%f,%f,%.10f,%f\n",outIter, elapsedTime, trainingRMSE, testRMSE, testRMSEColdStart, eta);
             }
 
             result[outIter] = new double[]{(outIter+1), elapsedTime, trainingRMSE, testRMSE};
