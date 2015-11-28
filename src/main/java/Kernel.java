@@ -8,6 +8,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
+import kernel_utils.PreferenceKernel;
+
 
 
 /**
@@ -60,9 +62,14 @@ public class Kernel {
     }
 
     /**
-     *
+     * Return the user-preference matrix for user similarity.
+     * @param filePath containing user_aspect ratings and overall rating
+     * @return the preferences of users. 
      */
 
+    public static CSRMatrix Preference_Matrix(String filePath,int modeLength) throws Exception{
+    	return PreferenceMatrixSimilarity(filePath,modeLength);
+    }
     /**
      * Return the inverse of the commute time kernel with given size
      * @param modeLength length of row and column
@@ -80,7 +87,16 @@ public class Kernel {
     public static CSRMatrix RLKernel(String filePath, double gamma, int modeLength) throws IOException {
         return regularizedLaplacian(importNetworkFromFile(filePath, ",", modeLength), gamma);
     }
-
+    
+    /**
+    * Compute the preference similarity matrix.
+    *
+    */
+    private static CSRMatrix PreferenceMatrixSimilarity(String filePath,int modeLength) throws IOException{
+    	DoubleMatrix2D preferences = PreferenceKernel.GetPreferenceVector(filePath,modeLength);
+    	return new CSRMatrix(preferences);
+    }
+    
     /**
      * Computes the symmetric KLD for the given text file. 
      */

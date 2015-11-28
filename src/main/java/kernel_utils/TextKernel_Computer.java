@@ -1,4 +1,4 @@
-package text_utils;
+package kernel_utils;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -13,7 +13,7 @@ import cern.colt.matrix.tdouble.DoubleMatrix2D;
 import edu.stanford.nlp.stats.*;
 import edu.stanford.nlp.util.Generics;
 
-public class Kernel_Computer {
+public class TextKernel_Computer {
 
 	public static HashSet<String> Get_Vocab(String file) throws IOException{
 		HashSet<String> vocab=new HashSet<String>();

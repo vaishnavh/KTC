@@ -228,6 +228,7 @@ public class Preprocess_BeerAdvocate {
 						fwd_user_details.write(review.aspectRatings.get("review/aroma")+"\t");
 						fwd_user_details.write(review.aspectRatings.get("review/appearance")+"\t");
 						fwd_user_details.write(review.aspectRatings.get("review/palate")+"\t");
+						fwd_user_details.write(review.overallRating+"\t");
 						fwd_user_details.write(review.text+"\n");
 					}
 				}
