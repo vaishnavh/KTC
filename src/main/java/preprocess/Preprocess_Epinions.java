@@ -193,22 +193,65 @@ public class Preprocess_Epinions {
 		fwd_train.close();
 		fwd_test.close();
 	}
+
+	public static void Average(String in_path, String out_path) throws IOException{
+		
+		BufferedReader brd= new BufferedReader(new FileReader(in_path));
+		String strLine="";
+		String[] split;
+		
+		double sum=0;
+		int ctr=0;
+		
+		while((strLine=brd.readLine())!=null){
+			split=strLine.split(",");
+			double rating=Double.parseDouble(split[3]);
+			sum+=rating;
+			ctr+=1;
+		}
+		brd.close();
+		
+		double average = (double)sum/ctr;
+		
+		FileWriter fwd = new FileWriter(out_path);
+		
+		brd=new BufferedReader(new FileReader(in_path));
+		while((strLine=brd.readLine())!=null){
+			split=strLine.split(",");
+			double rating=Double.parseDouble(split[3]);
+			double value = rating - average;
+			
+			fwd.write(split[0]+","+split[1]+","+split[2]+","+value+"\n");
+		}
+		fwd.close();
+		brd.close();
+	}
+	
+	public static void average_ratings_file(String training_path, String test_path,
+						String out_train_path,String out_test_path) throws IOException{
+		
+		Average(training_path,out_train_path);
+		Average(test_path,out_test_path);
+	}
 	
 	public static void main(String[] args) throws Exception{
 		
 		System.out.println(System.getProperty("user.dir"));
-		preprocess_ratings_file("./data/epinions/ratings.txt","./data/epinions/map_users.txt","./data/epinions/preprocessed_ratings.txt");
-		preprocess_network_file("./data/epinions/network.txt","./data/epinions/map_users.txt","./data/epinions/preprocessed_network.txt");
+		//preprocess_ratings_file("./data/epinions/ratings.txt","./data/epinions/map_users.txt","./data/epinions/preprocessed_ratings.txt");
+		//preprocess_network_file("./data/epinions/network.txt","./data/epinions/map_users.txt","./data/epinions/preprocessed_network.txt");
 		
-		Count_Data("./data/epinions/preprocessed_ratings.txt");
+		//Count_Data("./data/epinions/preprocessed_ratings.txt");
 		//Count_Data("./data/flixster/flixster/rating.train");
 		String in_file="./data/epinions/preprocessed_ratings.txt";
 		String train_file="./data/epinions/ratings.train";
 		String test_file="./data/epinions/ratings.test";
-		Split_Train_Test(in_file, train_file, test_file);
+		//Split_Train_Test(in_file, train_file, test_file);
 		
+		String center_train_file="./data/epinions/rating_centered_time.train";
+		String center_test_file="./data/epinions/rating_centered_time.test";
+		
+		average_ratings_file(train_file, test_file, center_train_file, center_test_file);
 		//Count_Data(train_file);
 		//Count_Data(test_file);
-		
 	}
 }

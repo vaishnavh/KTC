@@ -1,3 +1,5 @@
+import java.io.FileWriter;
+
 
 public class GridSearch {
 
@@ -57,6 +59,7 @@ public class GridSearch {
 		double best_sigma_value=Integer.MIN_VALUE;
 		double best_value=Double.MAX_VALUE;
 		
+		FileWriter fwd = new FileWriter("temp.txt",true);
 		
 		String[] args_for_program=args;
 		for(int i=0;i<num_iter_arr.length;i++){
@@ -68,7 +71,9 @@ public class GridSearch {
 					double[][] result=KPTFSGD.run(args_for_program);
 					int number_iteration=Integer.parseInt(num_iter_arr[i]);
 					double value=result[number_iteration-1][3];
-					if(value<best_value){
+					fwd.write(eta_arr[j]+"\t"+sigma_arr[k]+"\t"+value+"\n");
+					fwd.flush();
+					if(value<best_value && value>0){
 						best_iter_value=Integer.parseInt(num_iter_arr[i]);
 						best_eta_value=Double.parseDouble(eta_arr[j]);
 						best_sigma_value=Double.parseDouble(sigma_arr[k]);
@@ -77,11 +82,10 @@ public class GridSearch {
 				}
 			}
 		}
-		
 		System.out.println("Best Value="+best_value);
 		System.out.println("Best Iter="+best_iter_value);
 		System.out.println("Best Eta Value="+best_eta_value);
 		System.out.println("Best Sigma Value="+best_sigma_value);
+		fwd.close();
 	}
-
 }

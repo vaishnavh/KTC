@@ -245,7 +245,7 @@ public class KPTFSGD {
             result[outIter] = new double[]{(outIter+1), elapsedTime, trainingRMSE, testRMSE};
 
             //adjust learning rate
-            //eta = eta0 / ((outIter+2)*0.5f);
+            eta = eta0 / ((outIter+2)*0.5f);
         }
 
         return result;
