@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
+import cern.colt.matrix.tdouble.impl.SparseDoubleMatrix2D;
 import kernel_utils.PreferenceKernel;
 
 
@@ -49,6 +50,28 @@ public class Kernel {
             }
         }
         return new CSRMatrix(DenseDoubleAlgebra.DEFAULT.inverse(DoubleFactory2D.dense.make(kernelMatrix)));
+    }
+
+    /**
+     * Return the inverse of the kernel for image
+     * @param modeLength length of row and column
+     * @param width
+     * @param gamma
+     * @return
+     */
+    public static CSRMatrix imageKernel(int modeLength, double width, double gamma) {
+        DoubleMatrix2D kernel = new SparseDoubleMatrix2D(modeLength, modeLength);
+        for(int i=0; i<modeLength; i++) {
+            for(int j=1; j<=width; j++) {
+                if(i+j < modeLength) {
+                    kernel.set(i, i + j, 1);
+                }
+                if(i-j >= 0) {
+                    kernel.set(i, i - j, 1);
+                }
+            }
+        }
+        return Laplacian(kernel, gamma);
     }
     
     /**

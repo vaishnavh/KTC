@@ -72,8 +72,12 @@ public class KPTFSGD {
                     double rbfSigma = Double.valueOf(tokens[1]);
                     invKernels[dim] = Kernel.RBFKernel(modeSizes[dim], rbfSigma);
                 } else if(tokens[0].startsWith("SKLD")){
-                	String path=tokens[1];
-                	invKernels[dim] = Kernel.SymmetricKLD(path, modeSizes[dim]);
+                    String path=tokens[1];
+                    invKernels[dim] = Kernel.SymmetricKLD(path, modeSizes[dim]);
+                } else if(tokens[0].startsWith("IMG")){
+                    double width = Double.valueOf(tokens[1]);
+                    double gamma = Double.valueOf(tokens[2]);
+                    invKernels[dim] = Kernel.imageKernel(modeSizes[dim], width, gamma);
                 }
                 else {
                     throw new Exception("Unknown Kernel Function :"+ kernel);
@@ -245,7 +249,7 @@ public class KPTFSGD {
             result[outIter] = new double[]{(outIter+1), elapsedTime, trainingRMSE, testRMSE};
 
             //adjust learning rate
-            eta = eta0 / ((outIter+2)*0.5f);
+//            eta = eta0 / ((outIter+2)*0.5f);
         }
 
         return result;
