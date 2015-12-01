@@ -8,6 +8,7 @@ public class Review implements Comparable<Review>{
 	public double rating;
 	public String author;
 	public String item;
+	public String style;
 	public double overallRating;
 	HashMap<String, Double> aspectRatings=new HashMap<String,Double>();
 	public String text;

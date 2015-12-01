@@ -89,8 +89,11 @@ public class Preprocess_BeerAdvocate {
 			if (split[0].startsWith("beer")) {
 				if (split[0].contains("beerid"))
 					review.item= split[1];
+				if(split[0].contains("style")){
+					review.style=split[1];
+				}
 			}
-
+			
 			if (split[0].startsWith("review")) {
 				review.aspectRatings.put(split[0], Double.parseDouble(split[1].split("/")[0]));
 			}
@@ -113,7 +116,6 @@ public class Preprocess_BeerAdvocate {
 	}
 
 	public String processText(String text) {
-
 		text = text.replaceAll("[,$()\"~`^*/\\.'-\\?:;,!]", "");
 		text = text.replaceAll("\t", " ");
 		String tok[] = text.split(" ");
@@ -222,14 +224,13 @@ public class Preprocess_BeerAdvocate {
 					mod_ts=monthyear-min_ts;
 					
 					if(mod_user_id!=-1 && mod_prod_id!=-1){
-						fwd.write(mod_user_id+","+mod_prod_id+","+mod_ts+","+rating+"\n");
-						fwd_user_details.write(mod_user_id+"\t");
-						fwd_user_details.write(review.aspectRatings.get("review/taste")+"\t");
-						fwd_user_details.write(review.aspectRatings.get("review/aroma")+"\t");
-						fwd_user_details.write(review.aspectRatings.get("review/appearance")+"\t");
-						fwd_user_details.write(review.aspectRatings.get("review/palate")+"\t");
-						fwd_user_details.write(review.overallRating+"\t");
-						fwd_user_details.write(review.text+"\n");
+						fwd.write(mod_user_id+"\t"+mod_prod_id+"\t"+mod_ts+"\t"+rating+"\t");
+						fwd.write(review.aspectRatings.get("review/taste")+"\t");
+						fwd.write(review.aspectRatings.get("review/aroma")+"\t");
+						fwd.write(review.aspectRatings.get("review/appearance")+"\t");
+						fwd.write(review.aspectRatings.get("review/palate")+"\t");
+						fwd.write(review.style+"\t");
+						fwd.write(review.text+"\n");
 					}
 				}
 			}
@@ -253,7 +254,7 @@ public class Preprocess_BeerAdvocate {
 		int max_tsid=Integer.MIN_VALUE;
 
 		while((strLine=brd.readLine())!=null){
-			String[] split=strLine.split(",");
+			String[] split=strLine.split("\t");
 			int user_id=Integer.parseInt(split[0]);
 			int movie_id=Integer.parseInt(split[1]);
 			int timestamp=Integer.parseInt(split[2]);
@@ -304,18 +305,22 @@ public class Preprocess_BeerAdvocate {
 	public static void main(String[] args) throws Exception{
 		String in_file="./data/beer_advocate/Beeradvocate.txt";
 		String out_reviews_file="./data/beer_advocate/Beeradvocate_filtered.txt";
+		
 		String umap_file="./data/beer_advocate/Beeradvocate_Users.txt";
 		String pmap_file="./data/beer_advocate/Beeradvocate_Products.txt";
 		String udetails_file="./data/beer_advocate/Beeradvocate_UserDetails.txt";
+		
 		Preprocess_BeerAdvocate pba = new Preprocess_BeerAdvocate();
-		pba.LoadBeerData(in_file);
-		pba.WriteToAFile(umap_file, pmap_file, udetails_file, out_reviews_file);
+		//pba.LoadBeerData(in_file);
+		//pba.WriteToAFile(umap_file, pmap_file, udetails_file, out_reviews_file);
+		
+		
 
-		Preprocess_BeerAdvocate.Count_Data(out_reviews_file);
-
-
-		String train_file="./data/beer_advocate/ratings.train";
-		String test_file="./data/beer_advocate/ratings.test";
-		Preprocess_BeerAdvocate.Split_Train_Test(out_reviews_file, train_file, test_file);
+		String train_file="./data/beer_advocate/BA_Filtered.train";
+		String test_file="./data/beer_advocate/BA_Filtered.test";
+		//Preprocess_BeerAdvocate.Split_Train_Test(out_reviews_file, train_file, test_file);
+		
+		Preprocess_BeerAdvocate.Count_Data(train_file);
+		Preprocess_BeerAdvocate.Count_Data(test_file);
 	}
 }
